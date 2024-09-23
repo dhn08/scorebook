@@ -42,13 +42,14 @@ const uploadExcelData = async (req, res) => {
   const sheet_name_list = workbook.SheetNames;
 
   const xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
-  // console.log("xlData in json :", xlData);
+  console.log("xlData in json :", xlData);
   let uploadDoc = [];
   xlData.map((data) => {
     // console.log(data);
     let doc = {};
     doc.domain_name = data.name;
     doc.blocker = data.Blocker || 0;
+    doc.critical = data.Critical || 0;
     doc.major = data.Major || 0;
     doc.normal = data.Normal || 0;
     doc.minor = data.Minor || 0;
@@ -76,6 +77,7 @@ const uploadExcelData = async (req, res) => {
     doc.biweeklyId = newBiweeklyDoc._id;
     uploadDoc.push(doc);
   });
+  console.log("Upload doc ", uploadDoc);
 
   //Before inserting into mongodb first validate the uploadDoc
   const uploadDocErrors = await validateUploadDocs(uploadDoc);
@@ -88,6 +90,8 @@ const uploadExcelData = async (req, res) => {
 
     //Delete the biweekly doc which was created earlier
     await BiweeklyData.deleteOne({ _id: newBiweeklyDoc._id });
+
+    fs.unlinkSync(file.path);
 
     return res
       .status(400)
@@ -111,6 +115,7 @@ const uploadExcelData = async (req, res) => {
     .json({ message: "ok", data: { updatedBiweeklyData, scoreDocsInserted } });
   try {
   } catch (error) {
+    fs.unlinkSync(file.path);
     res.status(400).json({ message: "error", error });
   }
 };
@@ -147,5 +152,22 @@ const deleteAllBiweeklyData = async (req, res) => {
     res.status(400).json({ error });
   }
 };
+const getLatestBiweeklyData = async (req, res) => {
+  try {
+    const latestBiweeklyData = await BiweeklyData.findOne()
+      .sort({
+        endDate: -1,
+      })
+      .populate("scores");
 
-export { uploadExcelData, deleteAllBiweeklyData };
+    if (!latestBiweeklyData) {
+      return res.status(404).json({ message: "No biweekly data found." });
+    }
+
+    //extract scores
+    const scoresArray = latestBiweeklyData.scores;
+    return res.status(200).json({ message: "ok", data: scoresArray });
+  } catch (error) {}
+};
+
+export { uploadExcelData, deleteAllBiweeklyData, getLatestBiweeklyData };

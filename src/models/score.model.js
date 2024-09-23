@@ -5,9 +5,12 @@ const scoreSchema = new mongoose.Schema(
     domain_name: {
       type: String,
       required: true,
-      unique: true,
     },
     blocker: {
+      type: Number,
+      default: 0,
+    },
+    critical: {
       type: Number,
       default: 0,
     },
