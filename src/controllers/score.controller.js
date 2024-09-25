@@ -169,5 +169,16 @@ const getLatestBiweeklyData = async (req, res) => {
     return res.status(200).json({ message: "ok", data: scoresArray });
   } catch (error) {}
 };
+const getAllBiweeklyData = async (req, res) => {
+  const latestBiweeklyData = await BiweeklyData.find().populate("scores");
+  if (!latestBiweeklyData)
+    return res.status(404).json({ message: "No biweekly data found." });
+  return res.status(200).json({ message: "ok", data: latestBiweeklyData });
+};
 
-export { uploadExcelData, deleteAllBiweeklyData, getLatestBiweeklyData };
+export {
+  uploadExcelData,
+  deleteAllBiweeklyData,
+  getLatestBiweeklyData,
+  getAllBiweeklyData,
+};
