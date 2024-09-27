@@ -20,4 +20,18 @@ const validateUploadDocs = async (uploadDoc) => {
 
   return errors.length > 0 ? errors : null;
 };
-export { validateUploadDocs };
+const excelDateToJSDate = (excelDate) => {
+  const date = new Date((excelDate - 25569) * 86400 * 1000);
+  return date;
+};
+
+const activityStringToArrayConversion = (activityString) => {
+  const lines = activityString.split("\r\n");
+  const finalArray = lines.map((line) => line.replace(/^\d+\.\s*/, ""));
+  return finalArray;
+};
+export {
+  validateUploadDocs,
+  excelDateToJSDate,
+  activityStringToArrayConversion,
+};

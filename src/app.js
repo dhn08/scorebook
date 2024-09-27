@@ -13,9 +13,13 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 //routes import
 import scoreRouter from "./routes/score.routes.js";
+import activitiesRouter from "./routes/activity.routes.js";
 import { upload } from "./middlewares/multer.middleware.js";
 
 //routes declaration
-app.use("/api/v1/score", upload.single("file"), scoreRouter);
+//Because of this below line multer was used as middleware for all routes.
+// app.use("/api/v1/score", upload.single("file"), scoreRouter);
+app.use("/api/v1/score", scoreRouter);
+app.use("/api/v1/activity", activitiesRouter);
 
 export { app };
