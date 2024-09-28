@@ -3,13 +3,14 @@ import xlsx from "xlsx";
 import {
   activityStringToArrayConversion,
   excelDateToJSDate,
+  validateUploadDocsCalender,
 } from "../utils/helpers.js";
+import { Calender } from "../models/calender.model.js";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
   const { month } = req.body;
   try {
-    console.log("inside upload excel : file,", file);
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
@@ -28,10 +29,9 @@ const uploadExcelData = async (req, res) => {
       console.log("Inside map");
       console.log(excelDateToJSDate(data.Date));
       let doc = {
-        month: month,
         date: excelDateToJSDate(data.Date),
         day: data.Day,
-        activites_performed: data["Activities Performed"]
+        activities_performed: data["Activities Performed"]
           ? activityStringToArrayConversion(data["Activities Performed"])
           : [],
       };
@@ -48,9 +48,30 @@ const uploadExcelData = async (req, res) => {
     });
     // console.log("upload doc", uploadDoc, uploadDoc.length);
 
+    //Before inserting into mongodb first validate the uploadDoc
+    const uploadDocErrors = await validateUploadDocsCalender(uploadDoc);
+    console.log("uploadDocsErorr:", uploadDocErrors);
+    if (uploadDocErrors) {
+      //Delete the excel file which was uploaded
+
+      // const cloudinaryPublicId = newBiweeklyDoc.excelFile.public_Id;
+      // await deleteCloudinaryFile(cloudinaryPublicId);
+
+      //Delete the monthly_calender doc which was created earlier
+      // await BiweeklyData.deleteOne({ _id: newBiweeklyDoc._id });
+
+      fs.unlinkSync(file.path);
+
+      return res
+        .status(400)
+        .json({ message: "Validation error", errors: uploadDocErrors });
+    }
+    const calenderDocsInserted = await Calender.insertMany(uploadDoc);
+
     fs.unlinkSync(file.path);
-    res.status(200).json({ message: "ok", data: uploadDoc });
+    res.status(200).json({ message: "ok", data: calenderDocsInserted });
   } catch (error) {
+    res.status(400).json({ message: "error", error });
     fs.unlinkSync(file.path);
   }
 };
