@@ -177,16 +177,22 @@ const getLatestBiweeklyData = async (req, res) => {
     //extract scores
     const scoresArray = latestBiweeklyData.scores;
     return res.status(200).json({ message: "ok", data: scoresArray });
-  } catch (error) {}
+  } catch (error) {
+    res.status(400).json({ error });
+  }
 };
 const getAllBiweeklyData = async (req, res) => {
-  const latestBiweeklyData = await BiweeklyData.find().populate("scores");
+  try {
+    const latestBiweeklyData = await BiweeklyData.find().populate("scores");
 
-  if (latestBiweeklyData.length == 0) {
-    return res.status(404).json({ message: "No biweekly data found." });
+    if (latestBiweeklyData.length == 0) {
+      return res.status(404).json({ message: "No biweekly data found." });
+    }
+
+    return res.status(200).json({ message: "ok", data: latestBiweeklyData });
+  } catch (error) {
+    res.status(400).json({ error });
   }
-
-  return res.status(200).json({ message: "ok", data: latestBiweeklyData });
 };
 
 export {
