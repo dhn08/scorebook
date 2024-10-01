@@ -52,9 +52,13 @@ const activityStringToArrayConversion = (activityString) => {
   const finalArray = lines.map((line) => line.replace(/^\d+\.\s*/, ""));
   return finalArray;
 };
+const normalizeColumnName = (name) => {
+  return name.replace(/\s+/g, "").toLowerCase(); // Remove spaces and convert to lowercase
+};
 export {
   validateUploadDocs,
   excelDateToJSDate,
   activityStringToArrayConversion,
   validateUploadDocsCalender,
+  normalizeColumnName,
 };

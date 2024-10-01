@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 import fs from "fs";
 import xlsx from "xlsx";
 
-import { validateUploadDocs } from "../utils/helpers.js";
+import { normalizeColumnName, validateUploadDocs } from "../utils/helpers.js";
 import { start } from "repl";
 
 const uploadExcelData = async (req, res) => {
@@ -30,6 +30,7 @@ const uploadExcelData = async (req, res) => {
     //upload excel to cloudinary
 
     const excelUploadCloudinryResponse = await uploadOnCloudinary(file);
+    console.log("Cloudinary upload data :", excelUploadCloudinryResponse);
 
     //create biweekly doc
 
@@ -39,6 +40,7 @@ const uploadExcelData = async (req, res) => {
       excelFile: {
         public_Id: excelUploadCloudinryResponse.public_id,
         url: excelUploadCloudinryResponse.url,
+        fileName: excelUploadCloudinryResponse.original_filename,
       },
     };
     const newBiweeklyDoc = new BiweeklyData(biweekyDoc);
@@ -47,24 +49,42 @@ const uploadExcelData = async (req, res) => {
     //Read excell data and prepare score document.
 
     const workbook = xlsx.readFile(file.path);
+
     const sheet_name_list = workbook.SheetNames;
+    // console.log("Sheet me kya aya :", sheet);
+    //Normalsize columns name for excell
+
+    //convert column name to lower case
 
     const xlData = xlsx.utils.sheet_to_json(
       workbook.Sheets[sheet_name_list[0]],
+      { defval: null },
     );
-    console.log("xlData in json :", xlData);
+    // Normalize the keys (column names) to handle case-sensitive column name issue and space between column names
+    const normalizedData = xlData.map((row) => {
+      const normalizedRow = {};
+      for (const key in row) {
+        const normalizedKey = normalizeColumnName(key);
+        normalizedRow[normalizedKey] = row[key];
+      }
+      return normalizedRow;
+    });
+
+    // console.log("xlData in json :", normalizedData);
+
     let uploadDoc = [];
-    xlData.map((data) => {
+    normalizedData.map((data) => {
       // console.log(data);
+
       let doc = {};
       doc.domain_name = data.name;
-      doc.blocker = data.Blocker || 0;
-      doc.critical = data.Critical || 0;
-      doc.major = data.Major || 0;
-      doc.normal = data.Normal || 0;
-      doc.minor = data.Minor || 0;
+      doc.blocker = data.blocker || 0;
+      doc.critical = data.critical || 0;
+      doc.major = data.major || 0;
+      doc.normal = data.normal || 0;
+      doc.minor = data.minor || 0;
       doc.issueScore = data.issuescore || 0;
-      doc.issueCount = data["Issue count"];
+      doc.issueCount = data.issuecount;
       doc.previousScore = data.previousscore || 0;
       let actString = data.activities
         ?.replace(/[ ]{2,}/g, " ") // Replace multiple spaces with a single space
@@ -87,7 +107,8 @@ const uploadExcelData = async (req, res) => {
       doc.biweeklyId = newBiweeklyDoc._id;
       uploadDoc.push(doc);
     });
-    console.log("Upload doc ", uploadDoc);
+
+    // console.log("Upload doc ", uploadDoc);
 
     //Before inserting into mongodb first validate the uploadDoc
     const uploadDocErrors = await validateUploadDocs(uploadDoc);
@@ -126,6 +147,7 @@ const uploadExcelData = async (req, res) => {
     });
   } catch (error) {
     fs.unlinkSync(file.path);
+    console.log("Inside error");
     res.status(400).json({ message: "error", error });
   }
 };
