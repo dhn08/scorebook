@@ -24,6 +24,17 @@ const uploadExcelData = async (req, res) => {
     //Check for case when excell data is not completed for entire month
 
     //Hanlde case when month is alredy added
+    //Insure that month is in jan,feb... nomain clature handle that in fronthand
+    const checkMonthYearData = await MonthlyCalenderData.find({
+      month: month,
+      year: year,
+    });
+    if (!checkMonthYearData.length == 0) {
+      return res.status(400).json({
+        message:
+          "Data for entered month and year already added , delete the previous data to enter again.",
+      });
+    }
 
     //Upload excel to cloudinary
     const excelUploadCloudinryResponse = await uploadOnCloudinary(file);
