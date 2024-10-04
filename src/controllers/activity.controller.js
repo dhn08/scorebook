@@ -4,6 +4,7 @@ import {
   activityStringToArrayConversion,
   excelDateToJSDate,
   validateUploadDocsCalender,
+  normalizeColumnName,
 } from "../utils/helpers.js";
 import { Calender } from "../models/calender.model.js";
 import {
@@ -30,6 +31,8 @@ const uploadExcelData = async (req, res) => {
       year: year,
     });
     if (!checkMonthYearData.length == 0) {
+      //Unlink the file
+      fs.unlinkSync(file.path);
       return res.status(400).json({
         message:
           "Data for entered month and year already added , delete the previous data to enter again.",
@@ -61,14 +64,24 @@ const uploadExcelData = async (req, res) => {
     const xlData = xlsx.utils.sheet_to_json(
       workbook.Sheets[sheet_name_list[0]],
     );
+    // Normalize the keys (column names) to handle case-sensitive column name issue and space between column names
+    const normalizedData = xlData.map((row) => {
+      const normalizedRow = {};
+      for (const key in row) {
+        const normalizedKey = normalizeColumnName(key);
+        normalizedRow[normalizedKey] = row[key];
+      }
+      return normalizedRow;
+    });
+
     // console.log("xlData in json :", xlData);
     let uploadDoc = [];
-    xlData.map((data) => {
+    normalizedData.map((data) => {
       let doc = {
-        date: excelDateToJSDate(data.Date),
-        day: data.Day,
-        activities_performed: data["Activities Performed"]
-          ? activityStringToArrayConversion(data["Activities Performed"])
+        date: excelDateToJSDate(data.date),
+        day: data.day,
+        activities_performed: data.activitiesperformed
+          ? activityStringToArrayConversion(data.activitiesperformed)
           : [],
       };
 

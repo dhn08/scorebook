@@ -9,7 +9,6 @@ import fs from "fs";
 import xlsx from "xlsx";
 
 import { normalizeColumnName, validateUploadDocs } from "../utils/helpers.js";
-import { start } from "repl";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
