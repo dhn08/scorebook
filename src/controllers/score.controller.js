@@ -8,7 +8,11 @@ import mongoose from "mongoose";
 import fs from "fs";
 import xlsx from "xlsx";
 
-import { normalizeColumnName, validateUploadDocs } from "../utils/helpers.js";
+import {
+  getDateInReadableFormat,
+  normalizeColumnName,
+  validateUploadDocs,
+} from "../utils/helpers.js";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
@@ -20,6 +24,20 @@ const uploadExcelData = async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
+    //Check for given startDate and endDate ,is there any prvious biweejkly record created which collide with given start date and endDate.
+    const existingDocument = await BiweeklyData.findOne({
+      $or: [
+        { startDate: { $lte: startDate }, endDate: { $gte: startDate } },
+        { startDate: { $lte: endDate }, endDate: { $gte: endDate } },
+      ],
+    }).select("_id startDate endDate");
+    if (existingDocument) {
+      console.log("exixting document :", existingDocument);
+      fs.unlinkSync(file.path);
+      return res.status(400).json({
+        message: `The entered start date or end date already lie betweeen the ${getDateInReadableFormat(existingDocument.startDate)} and ${getDateInReadableFormat(existingDocument.endDate)}`,
+      });
+    }
     // ensure date format 2024-08-12  YYYY-MM-DD
     // console.log();
     // console.log(file, startDate, endDate);

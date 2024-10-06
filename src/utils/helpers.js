@@ -55,10 +55,18 @@ const activityStringToArrayConversion = (activityString) => {
 const normalizeColumnName = (name) => {
   return name.replace(/\s+/g, "").toLowerCase(); // Remove spaces and convert to lowercase
 };
+
+const getDateInReadableFormat = (date) => {
+  const newDate = new Date(date);
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  const formattedNewDate = newDate.toLocaleDateString(undefined, options);
+  return formattedNewDate;
+};
 export {
   validateUploadDocs,
   excelDateToJSDate,
   activityStringToArrayConversion,
   validateUploadDocsCalender,
   normalizeColumnName,
+  getDateInReadableFormat,
 };
