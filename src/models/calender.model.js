@@ -4,6 +4,7 @@ const calenderSchema = new mongoose.Schema({
   date: {
     type: Date,
     required: true,
+    unique: true,
   },
 
   activities_performed: {

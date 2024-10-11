@@ -29,16 +29,69 @@ const validateUploadDocsCalender = async (uploadDoc) => {
   for (const doc of uploadDoc) {
     // Create a new instance of the Score model
     const calenderInstance = new Calender(doc);
-    const validationError = calenderInstance.validateSync(); // Validate against the schema
+    doc;
+    try {
+      // Validate the instance against the schema
+      calenderInstance.validateSync();
 
-    if (validationError) {
-      // If validation fails, collect the errors
-      errors.push({
-        document: doc,
-        error: validationError.errors,
-      });
+      // Check for duplicate date in the database
+      const duplicate = await Calender.findOne({ date: calenderInstance.date });
+      if (duplicate) {
+        errors.push({
+          document: doc,
+          error:
+            "A document with the same date already exists. Please use a unique date.",
+        });
+        break;
+      }
+    } catch (error) {
+      if (error.name === "ValidationError") {
+        // Handle validation errors
+        Object.values(error.errors).forEach(({ message }) => {
+          errors.push({
+            document: doc,
+            error: message,
+          });
+        });
+      } else if (error.name === "CastError") {
+        // Handle incorrect type errors
+        errors.push({
+          document: doc,
+          error: `Invalid value for field ${error.path}: ${error.value}`,
+        });
+      } else if (error.name === "MongoNetworkError") {
+        // Handle network errors
+        errors.push({
+          document: doc,
+          error: "Network error occurred. Please try again later.",
+        });
+      } else if (error.name === "MongooseServerSelectionError") {
+        // Handle server selection errors
+        errors.push({
+          document: doc,
+          error:
+            "Database server selection error. Please check your database connection.",
+        });
+      } else {
+        // Handle other unknown errors
+        errors.push({
+          document: doc,
+          error: "An unknown error occurred. Please try again.",
+        });
+      }
     }
   }
+
+  // const validationError = calenderInstance.validateSync(); // Validate against the schema
+
+  // if (validationError) {
+  //   // If validation fails, collect the errors
+  //   errors.push({
+  //     document: doc,
+  //     error: validationError.errors,
+  //   });
+  // }
+  console.log("Errors from upload docs:", errors);
 
   return errors.length > 0 ? errors : null;
 };

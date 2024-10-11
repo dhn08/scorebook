@@ -22,7 +22,7 @@ const monthlyCalenderDataSchema = new mongoose.Schema({
   activities: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Calendar",
+      ref: "Calender",
     },
   ],
 });

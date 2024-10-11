@@ -39,6 +39,8 @@ const uploadExcelData = async (req, res) => {
       });
     }
 
+    //Also handle this if month and year enter is different but excel file is same
+
     //Upload excel to cloudinary
     const excelUploadCloudinryResponse = await uploadOnCloudinary(file);
 
@@ -95,6 +97,7 @@ const uploadExcelData = async (req, res) => {
     console.log("uploadDocsErorr:", uploadDocErrors);
     if (uploadDocErrors) {
       //Delete the excel file which was uploaded
+      console.log("Inside uploadDocErros");
 
       const cloudinaryPublicId = newMonthlyCalenderdataDoc.excelFile.public_Id;
       await deleteCloudinaryFile(cloudinaryPublicId);
@@ -187,4 +190,24 @@ const getAllCalenderData = async (req, res) => {
     res.status(400).json({ error });
   }
 };
-export { uploadExcelData, deleteAllCalenderDataByMonth, getAllCalenderData };
+const getAllCalenderDataMonthWise = async (req, res) => {
+  try {
+    console.log("Han bhai inside api");
+    const allMonthlyCalenderData =
+      await MonthlyCalenderData.find().populate("activities");
+    if (allMonthlyCalenderData.length == 0) {
+      return res.status(404).json({ message: "No calender data found." });
+    }
+    return res
+      .status(200)
+      .json({ message: "ok", data: allMonthlyCalenderData });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+};
+export {
+  uploadExcelData,
+  deleteAllCalenderDataByMonth,
+  getAllCalenderData,
+  getAllCalenderDataMonthWise,
+};
