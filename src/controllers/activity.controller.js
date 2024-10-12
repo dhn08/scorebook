@@ -39,26 +39,6 @@ const uploadExcelData = async (req, res) => {
       });
     }
 
-    //Also handle this if month and year enter is different but excel file is same
-
-    //Upload excel to cloudinary
-    const excelUploadCloudinryResponse = await uploadOnCloudinary(file);
-
-    //Create monthlyCalenderdata doc
-    let monthlyCalenderdataDoc = {
-      month: month,
-      year: Number(year),
-      excelFile: {
-        public_id: excelUploadCloudinryResponse.public_id,
-        url: excelUploadCloudinryResponse.url,
-      },
-    };
-
-    const newMonthlyCalenderdataDoc = new MonthlyCalenderData(
-      monthlyCalenderdataDoc,
-    );
-    await newMonthlyCalenderdataDoc.save();
-
     //Read excel data
     const workbook = xlsx.readFile(file.path);
     const sheet_name_list = workbook.SheetNames;
@@ -93,19 +73,25 @@ const uploadExcelData = async (req, res) => {
     // console.log("upload doc", uploadDoc, uploadDoc.length);
 
     //Before inserting into mongodb first validate the uploadDoc
-    const uploadDocErrors = await validateUploadDocsCalender(uploadDoc);
+    //Handle error when month and  year is entered like June 2024 but if excel is uploaded for July or May month and if they are not already added previously , this will create issues,
+
+    const uploadDocErrors = await validateUploadDocsCalender(
+      uploadDoc,
+      month,
+      year,
+    );
     console.log("uploadDocsErorr:", uploadDocErrors);
     if (uploadDocErrors) {
-      //Delete the excel file which was uploaded
-      console.log("Inside uploadDocErros");
+      // //Delete the excel file which was uploaded
+      // console.log("Inside uploadDocErros");
 
-      const cloudinaryPublicId = newMonthlyCalenderdataDoc.excelFile.public_Id;
-      await deleteCloudinaryFile(cloudinaryPublicId);
+      // const cloudinaryPublicId = newMonthlyCalenderdataDoc.excelFile.public_Id;
+      // await deleteCloudinaryFile(cloudinaryPublicId);
 
-      //Delete the monthly_calender doc which was created earlier
-      await MonthlyCalenderData.deleteOne({
-        _id: newMonthlyCalenderdataDoc._id,
-      });
+      // //Delete the monthly_calender doc which was created earlier
+      // await MonthlyCalenderData.deleteOne({
+      //   _id: newMonthlyCalenderdataDoc._id,
+      // });
 
       fs.unlinkSync(file.path);
 
@@ -115,6 +101,24 @@ const uploadExcelData = async (req, res) => {
     }
 
     const calenderDocsInserted = await Calender.insertMany(uploadDoc);
+
+    //Upload excel to cloudinary
+    const excelUploadCloudinryResponse = await uploadOnCloudinary(file);
+
+    //Create monthlyCalenderdata doc
+    let monthlyCalenderdataDoc = {
+      month: month,
+      year: Number(year),
+      excelFile: {
+        public_id: excelUploadCloudinryResponse.public_id,
+        url: excelUploadCloudinryResponse.url,
+      },
+    };
+
+    const newMonthlyCalenderdataDoc = new MonthlyCalenderData(
+      monthlyCalenderdataDoc,
+    );
+    await newMonthlyCalenderdataDoc.save();
 
     //Add the calender doc _id to monthlyCalenderData table activities array
     const calenderIds = calenderDocsInserted.map((calender) => calender._id);
@@ -192,7 +196,6 @@ const getAllCalenderData = async (req, res) => {
 };
 const getAllCalenderDataMonthWise = async (req, res) => {
   try {
-    console.log("Han bhai inside api");
     const allMonthlyCalenderData =
       await MonthlyCalenderData.find().populate("activities");
     if (allMonthlyCalenderData.length == 0) {

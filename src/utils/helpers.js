@@ -1,3 +1,4 @@
+import { monthNames } from "../constants.js";
 import { Calender } from "../models/calender.model.js";
 import { Score } from "../models/score.model.js";
 
@@ -22,16 +23,31 @@ const validateUploadDocs = async (uploadDoc) => {
 
   return errors.length > 0 ? errors : null;
 };
-const validateUploadDocsCalender = async (uploadDoc) => {
+const validateUploadDocsCalender = async (uploadDoc, month, year) => {
   console.log("Inside validate upload Docs");
   const errors = [];
+  // console.log("Upload doc inside validateUploadDocsCalender", uploadDoc);
+  const datesArray = generateDatesForMonth(month, year);
+  // console.log("datesArray", datesArray);
 
   for (const doc of uploadDoc) {
     // Create a new instance of the Score model
     const calenderInstance = new Calender(doc);
-    doc;
+
     try {
       // Validate the instance against the schema
+      //Check if document date lies in the month and year given by the user
+      const dateLiesInGivenMonthandYear = datesArray.some(
+        (d) => d.toDateString() === doc.date.toDateString(),
+      );
+
+      if (!dateLiesInGivenMonthandYear) {
+        errors.push({
+          document: doc,
+          error: `There exists a date ${doc.date} which does not lie in ${month} ${year}`,
+        });
+        break;
+      }
       calenderInstance.validateSync();
 
       // Check for duplicate date in the database
@@ -114,6 +130,16 @@ const getDateInReadableFormat = (date) => {
   const options = { year: "numeric", month: "long", day: "numeric" };
   const formattedNewDate = newDate.toLocaleDateString(undefined, options);
   return formattedNewDate;
+};
+const generateDatesForMonth = (month, year) => {
+  const monthFullName = monthNames[month] || month;
+  const monthIndex = new Date(`${monthFullName} 1, ${year}`).getMonth();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+  return Array.from(
+    { length: daysInMonth },
+    (_, i) => new Date(Date.UTC(year, monthIndex, i + 1)),
+  );
 };
 export {
   validateUploadDocs,
