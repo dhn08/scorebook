@@ -13,3 +13,17 @@ export const monthNames = {
   Nov: "November",
   Dec: "December",
 };
+export const REQUIRED_COLUMNS_BIWEEKLY_EXCEL = [
+  "name",
+  "blocker",
+  "critical",
+  "major",
+  "normal",
+  "minor",
+  "issuescore",
+  "issuecount",
+  "previousscore",
+  "activities",
+  "numberofcourses",
+  "courses",
+];

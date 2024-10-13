@@ -13,6 +13,7 @@ import {
   normalizeColumnName,
   validateUploadDocs,
 } from "../utils/helpers.js";
+import { REQUIRED_COLUMNS_BIWEEKLY_EXCEL } from "../constants.js";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
@@ -43,26 +44,6 @@ const uploadExcelData = async (req, res) => {
     // console.log(file, startDate, endDate);
     // console.log("Type : ", typeof startDate);
 
-    //create biweekly doc
-    //upload excel to cloudinary
-
-    const excelUploadCloudinryResponse = await uploadOnCloudinary(file);
-    console.log("Cloudinary upload data :", excelUploadCloudinryResponse);
-
-    //create biweekly doc
-
-    let biweekyDoc = {
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      excelFile: {
-        public_Id: excelUploadCloudinryResponse.public_id,
-        url: excelUploadCloudinryResponse.url,
-        fileName: excelUploadCloudinryResponse.original_filename,
-      },
-    };
-    const newBiweeklyDoc = new BiweeklyData(biweekyDoc);
-    await newBiweeklyDoc.save();
-
     //Read excell data and prepare score document.
 
     const workbook = xlsx.readFile(file.path);
@@ -88,11 +69,45 @@ const uploadExcelData = async (req, res) => {
     });
 
     // console.log("xlData in json :", normalizedData);
+    //Also check column name in excel is same as used below like name,blocker,critical,major etc
+    // Define the required column names
+    const requiredColumns = REQUIRED_COLUMNS_BIWEEKLY_EXCEL;
+
+    // Check if all required columns are present
+    const columns = Object.keys(normalizedData[0]);
+    console.log("Columns:", columns);
+    const isValid = requiredColumns.every((col) => columns.includes(col));
+    console.log("Isvalid", isValid);
+    if (!isValid) {
+      console.log("Inside isValid", columns);
+      fs.unlinkSync(file.path);
+      return res.status(400).json({
+        message: "Column names in excel sheet  is not as per required format",
+      });
+    }
+    //create biweekly doc
+    //upload excel to cloudinary
+
+    const excelUploadCloudinryResponse = await uploadOnCloudinary(file);
+    console.log("Cloudinary upload data :", excelUploadCloudinryResponse);
+
+    //create biweekly doc
+
+    let biweekyDoc = {
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      excelFile: {
+        public_Id: excelUploadCloudinryResponse.public_id,
+        url: excelUploadCloudinryResponse.url,
+        fileName: excelUploadCloudinryResponse.original_filename,
+      },
+    };
+    const newBiweeklyDoc = new BiweeklyData(biweekyDoc);
+    await newBiweeklyDoc.save();
 
     let uploadDoc = [];
     normalizedData.map((data) => {
       // console.log(data);
-
       let doc = {};
       doc.domain_name = data.name;
       doc.blocker = data.blocker || 0;

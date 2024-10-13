@@ -47,6 +47,7 @@ const uploadExcelData = async (req, res) => {
       workbook.Sheets[sheet_name_list[0]],
     );
     // Normalize the keys (column names) to handle case-sensitive column name issue and space between column names
+
     const normalizedData = xlData.map((row) => {
       const normalizedRow = {};
       for (const key in row) {
@@ -56,7 +57,22 @@ const uploadExcelData = async (req, res) => {
       return normalizedRow;
     });
 
-    // console.log("xlData in json :", xlData);
+    //Also check column name in excel is same as used below like date,day,activitiesperformed
+    // Define the required column names
+    const requiredColumns = ["date", "day", "activitiesperformed"];
+
+    // Check if all required columns are present
+    const columns = Object.keys(normalizedData[0]);
+    console.log("Columns:", columns);
+    const isValid = requiredColumns.every((col) => columns.includes(col));
+    console.log("Isvalid", isValid);
+    if (!isValid) {
+      console.log("Inside isValid", columns);
+      fs.unlinkSync(file.path);
+      return res.status(400).json({
+        message: "Column names in excel sheet  is not as per required format",
+      });
+    }
     let uploadDoc = [];
     normalizedData.map((data) => {
       let doc = {
