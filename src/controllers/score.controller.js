@@ -14,6 +14,7 @@ import {
   validateUploadDocs,
 } from "../utils/helpers.js";
 import { REQUIRED_COLUMNS_BIWEEKLY_EXCEL } from "../constants.js";
+import { User } from "../models/user.model.js";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
@@ -23,6 +24,9 @@ const uploadExcelData = async (req, res) => {
     console.log("Inside upload excel data api , file is :", file);
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
+    }
+    if (!teamName) {
+      return res.status(400).json({ error: "Team name not given" });
     }
 
     //Check for given startDate and endDate ,is there any prvious biweejkly record created which collide with given start date and endDate.
@@ -90,11 +94,10 @@ const uploadExcelData = async (req, res) => {
 
     // Check if all required columns are present
     const columns = Object.keys(normalizedData[0]);
-    console.log("Columns:", columns);
+
     const isValid = requiredColumns.every((col) => columns.includes(col));
-    console.log("Isvalid", isValid);
+
     if (!isValid) {
-      console.log("Inside isValid", columns);
       fs.unlinkSync(file.path);
       return res.status(400).json({
         message: "Column names in excel sheet  is not as per required format",
@@ -121,8 +124,16 @@ const uploadExcelData = async (req, res) => {
     const newBiweeklyDoc = new BiweeklyData(biweekyDoc);
     await newBiweeklyDoc.save();
 
+    const allUsers = await User.find();
+    // console.log("allUsers", allUsers);
+
     let uploadDoc = [];
     normalizedData.map((data) => {
+      const user = allUsers.find(
+        (item) => item.domain_name === data.name.toLowerCase(),
+      );
+      // console.log("User", user);
+
       // console.log(data);
       let doc = {};
       doc.domain_name = data.name;
@@ -152,6 +163,9 @@ const uploadExcelData = async (req, res) => {
 
       doc.courses = couString?.split("\r\n") || [];
       doc.numberOfCourses = doc.courses.length;
+      doc.image_url =
+        user?.image.url ||
+        "https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_1280.png";
       doc.biweeklyId = newBiweeklyDoc._id;
       uploadDoc.push(doc);
     });

@@ -60,8 +60,6 @@ const scoreSchema = new mongoose.Schema(
     },
     image_url: {
       type: String,
-      default:
-        "https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_1280.png",
     },
   },
   {
