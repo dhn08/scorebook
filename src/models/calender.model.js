@@ -4,8 +4,8 @@ const calenderSchema = new mongoose.Schema({
   date: {
     type: Date,
     required: true,
-    unique: true,
   },
+  team: { type: String },
 
   activities_performed: {
     type: [String],

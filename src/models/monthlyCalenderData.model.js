@@ -9,6 +9,9 @@ const monthlyCalenderDataSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  team: {
+    type: String,
+  },
   excelFile: {
     public_id: {
       type: String,

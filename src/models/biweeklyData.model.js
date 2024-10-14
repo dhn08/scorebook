@@ -10,6 +10,7 @@ const biweeklyDataSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    team: { type: String },
     excelFile: {
       public_Id: {
         type: String,

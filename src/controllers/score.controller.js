@@ -17,7 +17,7 @@ import { REQUIRED_COLUMNS_BIWEEKLY_EXCEL } from "../constants.js";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
-  const { startDate, endDate } = req.body;
+  const { startDate, endDate, teamName } = req.body;
 
   try {
     console.log("Inside upload excel data api , file is :", file);
@@ -26,12 +26,27 @@ const uploadExcelData = async (req, res) => {
     }
 
     //Check for given startDate and endDate ,is there any prvious biweejkly record created which collide with given start date and endDate.
+
+    // const existingDocument = await BiweeklyData.findOne({
+    //   $or: [
+    //     { startDate: { $lte: startDate }, endDate: { $gte: startDate } },
+    //     { startDate: { $lte: endDate }, endDate: { $gte: endDate } },
+    //   ],
+    // }).select("_id startDate endDate");
+
+    //Check above case , if above true then check if team is also same as given by user means biweekly period already added for given team.
     const existingDocument = await BiweeklyData.findOne({
-      $or: [
-        { startDate: { $lte: startDate }, endDate: { $gte: startDate } },
-        { startDate: { $lte: endDate }, endDate: { $gte: endDate } },
+      $and: [
+        {
+          $or: [
+            { startDate: { $lte: startDate }, endDate: { $gte: startDate } },
+            { startDate: { $lte: endDate }, endDate: { $gte: endDate } },
+          ],
+        },
+        { team: teamName }, // Ensure this field matches the given team name
       ],
-    }).select("_id startDate endDate");
+    }).select("_id startDate endDate team");
+
     if (existingDocument) {
       console.log("exixting document :", existingDocument);
       fs.unlinkSync(file.path);
@@ -101,6 +116,7 @@ const uploadExcelData = async (req, res) => {
         url: excelUploadCloudinryResponse.url,
         fileName: excelUploadCloudinryResponse.original_filename,
       },
+      team: teamName,
     };
     const newBiweeklyDoc = new BiweeklyData(biweekyDoc);
     await newBiweeklyDoc.save();

@@ -17,7 +17,7 @@ import mongoose from "mongoose";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
-  const { month, year } = req.body;
+  const { month, year, teamName } = req.body;
   try {
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -29,6 +29,7 @@ const uploadExcelData = async (req, res) => {
     const checkMonthYearData = await MonthlyCalenderData.find({
       month: month,
       year: year,
+      team: teamName,
     });
     if (!checkMonthYearData.length == 0) {
       //Unlink the file
@@ -78,6 +79,7 @@ const uploadExcelData = async (req, res) => {
       let doc = {
         date: excelDateToJSDate(data.date),
         day: data.day,
+        team: teamName,
         activities_performed: data.activitiesperformed
           ? activityStringToArrayConversion(data.activitiesperformed)
           : [],
@@ -95,6 +97,7 @@ const uploadExcelData = async (req, res) => {
       uploadDoc,
       month,
       year,
+      teamName,
     );
     console.log("uploadDocsErorr:", uploadDocErrors);
     if (uploadDocErrors) {
@@ -125,6 +128,7 @@ const uploadExcelData = async (req, res) => {
     let monthlyCalenderdataDoc = {
       month: month,
       year: Number(year),
+      team: teamName,
       excelFile: {
         public_id: excelUploadCloudinryResponse.public_id,
         url: excelUploadCloudinryResponse.url,

@@ -23,7 +23,7 @@ const validateUploadDocs = async (uploadDoc) => {
 
   return errors.length > 0 ? errors : null;
 };
-const validateUploadDocsCalender = async (uploadDoc, month, year) => {
+const validateUploadDocsCalender = async (uploadDoc, month, year, teamName) => {
   console.log("Inside validate upload Docs");
   const errors = [];
   // console.log("Upload doc inside validateUploadDocsCalender", uploadDoc);
@@ -51,7 +51,10 @@ const validateUploadDocsCalender = async (uploadDoc, month, year) => {
       calenderInstance.validateSync();
 
       // Check for duplicate date in the database
-      const duplicate = await Calender.findOne({ date: calenderInstance.date });
+      const duplicate = await Calender.findOne({
+        date: calenderInstance.date,
+        team: teamName,
+      });
       if (duplicate) {
         errors.push({
           document: doc,
