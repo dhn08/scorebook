@@ -27,6 +27,7 @@ app.use(cookieParser());
 //routes import
 import scoreRouter from "./routes/score.routes.js";
 import activitiesRouter from "./routes/activity.routes.js";
+import userRouter from "./routes/user.routes.js";
 import { upload } from "./middlewares/multer.middleware.js";
 
 //routes declaration
@@ -34,5 +35,6 @@ import { upload } from "./middlewares/multer.middleware.js";
 // app.use("/api/v1/score", upload.single("file"), scoreRouter);
 app.use("/api/v1/score", scoreRouter);
 app.use("/api/v1/activity", activitiesRouter);
+app.use("/api/v1/user", userRouter);
 
 export { app };
