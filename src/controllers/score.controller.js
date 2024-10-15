@@ -87,7 +87,7 @@ const uploadExcelData = async (req, res) => {
       return normalizedRow;
     });
 
-    // console.log("xlData in json :", normalizedData);
+    console.log("xlData in json :", normalizedData);
     //Also check column name in excel is same as used below like name,blocker,critical,major etc
     // Define the required column names
     const requiredColumns = REQUIRED_COLUMNS_BIWEEKLY_EXCEL;
@@ -165,7 +165,7 @@ const uploadExcelData = async (req, res) => {
       doc.numberOfCourses = data.numberofcourses || 0;
       doc.image_url =
         user?.image.url ||
-        "https://res.cloudinary.com/dplljbrim/image/upload/v1728985707/scorebook/man_lusipc.png";
+        "https://res.cloudinary.com/dplljbrim/image/upload/v1729009032/istockphoto-1305665241-1024x1024_wndbxo.jpg";
       doc.biweeklyId = newBiweeklyDoc._id;
       uploadDoc.push(doc);
     });
