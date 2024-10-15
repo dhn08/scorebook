@@ -165,7 +165,7 @@ const uploadExcelData = async (req, res) => {
       doc.numberOfCourses = doc.courses.length;
       doc.image_url =
         user?.image.url ||
-        "https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_1280.png";
+        "https://res.cloudinary.com/dplljbrim/image/upload/v1728985707/scorebook/man_lusipc.png";
       doc.biweeklyId = newBiweeklyDoc._id;
       uploadDoc.push(doc);
     });
