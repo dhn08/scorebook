@@ -162,7 +162,7 @@ const uploadExcelData = async (req, res) => {
         .join("\n"); // Join the array back into a string
 
       doc.courses = couString?.split("\r\n") || [];
-      doc.numberOfCourses = doc.courses.length;
+      doc.numberOfCourses = data.numberofcourses || 0;
       doc.image_url =
         user?.image.url ||
         "https://res.cloudinary.com/dplljbrim/image/upload/v1728985707/scorebook/man_lusipc.png";
