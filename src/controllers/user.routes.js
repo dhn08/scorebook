@@ -43,6 +43,7 @@ const uploadUserImage = async (req, res) => {
       data: { newUserDoc },
     });
   } catch (error) {
+    fs.unlinkSync(file.path);
     res.status(400).json({
       message: error,
     });
