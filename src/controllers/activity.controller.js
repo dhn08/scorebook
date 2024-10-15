@@ -14,6 +14,7 @@ import {
 import { url } from "inspector";
 import { MonthlyCalenderData } from "../models/monthlyCalenderData.model.js";
 import mongoose from "mongoose";
+import { normalize } from "path";
 
 const uploadExcelData = async (req, res) => {
   const file = req.file;
@@ -46,6 +47,7 @@ const uploadExcelData = async (req, res) => {
 
     const xlData = xlsx.utils.sheet_to_json(
       workbook.Sheets[sheet_name_list[0]],
+      { defval: null },
     );
     // Normalize the keys (column names) to handle case-sensitive column name issue and space between column names
 
@@ -60,6 +62,7 @@ const uploadExcelData = async (req, res) => {
 
     //Also check column name in excel is same as used below like date,day,activitiesperformed
     // Define the required column names
+    console.log("activity normalizedData :", normalizedData);
     const requiredColumns = ["date", "day", "activitiesperformed"];
 
     // Check if all required columns are present
