@@ -219,8 +219,59 @@ const getAllCalenderData = async (req, res) => {
 };
 const getAllCalenderDataMonthWise = async (req, res) => {
   try {
-    const allMonthlyCalenderData =
-      await MonthlyCalenderData.find().populate("activities");
+    // const allMonthlyCalenderData =
+    //   await MonthlyCalenderData.find().populate("activities");
+    const allMonthlyCalenderData = await MonthlyCalenderData.aggregate([
+      {
+        $addFields: {
+          monthValue: {
+            $indexOfArray: [
+              [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+              ],
+              "$month",
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "calenders", // Collection name of the referenced model
+          localField: "activities",
+          foreignField: "_id",
+          as: "activities",
+        },
+      },
+      {
+        $sort: {
+          year: -1,
+          monthValue: -1,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          month: 1,
+          year: 1,
+          team: 1,
+          excelFile: 1,
+          activities: 1,
+        },
+      },
+    ]);
+
+    console.log("allmonthlycalender data", allMonthlyCalenderData);
     if (allMonthlyCalenderData.length == 0) {
       return res.status(404).json({ message: "No calender data found." });
     }
