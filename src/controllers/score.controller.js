@@ -165,7 +165,7 @@ const uploadExcelData = async (req, res) => {
       doc.numberOfCourses = data.numberofcourses || 0;
       doc.image_url =
         user?.image.url ||
-        "https://res.cloudinary.com/dplljbrim/image/upload/v1729009032/istockphoto-1305665241-1024x1024_wndbxo.jpg";
+        "https://res.cloudinary.com/dplljbrim/image/upload/v1729062762/Group_64_goyhvm.png";
       doc.biweeklyId = newBiweeklyDoc._id;
       uploadDoc.push(doc);
     });
